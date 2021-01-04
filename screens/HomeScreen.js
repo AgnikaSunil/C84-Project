@@ -5,31 +5,32 @@ import db from '../config';
 import firebase from 'firebase';
 import MyHeader from '../components/MyHeader';
 
-export default class BookDonateScreen extends Component{
+export default class HomeScreen extends Component{
     constructor(){
         super();
         this.state = {
-            allRequests: []
+            requestedItemsList: []
         }
         this.requestRef = null
     }
 
-    getAllRequests = () => {
+    getRequestedItemsList = () => {
         this.requestRef = db.collection("exchange_requests").onSnapshot((snapshot)=>{
-            var allRequests = snapshot.docs.map(document => document.data());
+            var requestedItemsList = snapshot.docs.map(document => document.data());
             this.setState({
-                allRequests: allRequests
+                requestedItemsList: requestedItemsList
             })
         })
     }
 
     componentDidMount(){
-        this.getAllRequests();
+        this.getRequestedItemsList()
     }
 
     componentWillUnmount(){
         this.requestRef();
     }
+
 
     keyExtractor = (item, index) => index.toString();
     
@@ -37,12 +38,16 @@ export default class BookDonateScreen extends Component{
         return(
             <ListItem
                 key = {i}
-                title = {item.book_name}
+                title = {item.item_name}
                 subtitle = {item.reason_to_request}
                 titleStyle = {{color: 'black', fontWeight: "bold"}}
                 rightElement = {
-                    <TouchableOpacity style = {styles.button}>
-                        <Text style = {{color: '#ffff'}}>Exchange</Text>
+                    <TouchableOpacity 
+                    style = {styles.button}
+                    onPress = {()=>{
+                        this.props.navigation.navigate("RecieverDetails",{"details": item})
+                    }}>
+                    <Text style = {{color: '#ffff'}}>Exchange</Text>
                     </TouchableOpacity>
                 }
                 bottomDivider
@@ -55,7 +60,7 @@ export default class BookDonateScreen extends Component{
             <View style = {{flex: 1}}>
                 <MyHeader title = "Barter App"/>
                 <View style = {{flex: 1}}>
-                    {this.state.allRequests.length === 0
+                    {this.state.requestedItemsList.length === 0
                     ? (
                         <View style = {styles.subContainer}>
                             <Text style = {{fontSize: 20}}>List of all exchange requests</Text>
@@ -64,7 +69,7 @@ export default class BookDonateScreen extends Component{
                     : (
                         <FlatList
                             keyExtractor = {this.keyExtractor}
-                            data = {this.state.allRequests}
+                            data = {this.state.requestedItemsList}
                             renderItem = {this.renderItem}
                         />
                     )
